@@ -4,5 +4,15 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"*.tcc": "cpp",
+			"string": "cpp",
+			"istream": "cpp",
+			"iostream": "cpp",
+			"ostream": "cpp",
+			"string_view": "cpp",
+			"iosfwd": "cpp"
+		}
+	}
 }
