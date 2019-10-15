@@ -6,8 +6,14 @@
 #include <string>
 
 
-#include <sstream> 
+// #include <sstream> 
 using namespace std;
+
+// Quicksort
+int particiona(int *v, int beg, int end, int pivo);
+void quickSort2(int *v, int beg, int end);
+void quickSort(int *v, int n);
+
 
 struct structLinhas{
     char colunaChave[50];
@@ -51,6 +57,7 @@ int main(int argc, char *argv[]){
     // Verifica chave e quantidade de colunas
 
     char chave[50];
+    // char *chave = new char[linha.length()+1];
     getline(arquivo, linha, '\n');
     strcpy(chave, linha.c_str());
 
@@ -75,12 +82,9 @@ int main(int argc, char *argv[]){
     arquivo.seekg (0, arquivo.beg);
     numIteracoes = 0;
 
-
     char arqSaida[20];
 
     structLinhas Linhas[maxLinhas+1];
-
-
 
     while (arquivo.peek() != EOF){
         
@@ -109,7 +113,7 @@ int main(int argc, char *argv[]){
                     saida << Linhas[contadorLinhas].colunaChave << ',';
                 }
                 if (contadorParametros == posicaoValor){
-                    Linhas[contadorLinhas].valor = atoi(chave);
+                    Linhas[contadorLinhas].valor = stod(chave);
                     saida << Linhas[contadorLinhas].valor << endl;
                 }
             }
@@ -122,7 +126,6 @@ int main(int argc, char *argv[]){
                 contadorParametros = 0;
             }            
         }
-
 
         saida.close();
         nArquivoSaida++;
@@ -144,3 +147,32 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
+// particiona o subvetor v[beg, ..., end - 1]
+int particiona(int *v, int beg, int end, int pivo) {
+    int valorPivo = v[pivo];
+    //colocamos o pivo temporariamente na ultima posição
+    swap(v[pivo], v[end-1]);
+    // ao acharmos um elemento menor do que o pivo, vamos coloca-lo
+    // na posicao "pos"
+    int pos = beg;
+    for(int i = beg; i < end-1; i++) {
+        if (v[i] < valorPivo) {
+            swap(v[pos], v[i]);
+            pos++;
+        }
+    }
+    //coloque o pivo depois do ultimo elemento menor que ele
+    swap(v[pos],v[end-1]);
+    return pos;
+}
+
+void quickSort2(int *v, int beg, int end) {
+    if(beg == end) return;
+    int pos = particiona(v, beg, end, beg);
+    quickSort2(v, beg, pos);
+    quickSort2(v, pos + 1, end);
+}
+
+void quickSort(int *v, int n) {
+    quickSort2(v, 0, n);
+}
