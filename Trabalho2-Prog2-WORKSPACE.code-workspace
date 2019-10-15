@@ -12,7 +12,15 @@
 			"iostream": "cpp",
 			"ostream": "cpp",
 			"string_view": "cpp",
-			"iosfwd": "cpp"
+			"iosfwd": "cpp",
+			"cstring": "cpp",
+			"algorithm": "cpp",
+			"array": "cpp",
+			"deque": "cpp",
+			"unordered_map": "cpp",
+			"vector": "cpp",
+			"initializer_list": "cpp",
+			"sstream": "cpp"
 		}
 	}
 }
