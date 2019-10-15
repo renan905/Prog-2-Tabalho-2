@@ -92,8 +92,7 @@ int main(int argc, char *argv[]){
             printf("Arquivo: %s gerado com sucesso\n", arqSaida );
         }
 
-        while(contadorLinhas < maxLinhas && arquivo.peek() != EOF){
-            cout << "contadorLinhas :" << contadorLinhas << "\n contadorParametros : " << contadorParametros <<endl;
+        while(contadorLinhas-1 < maxLinhas && arquivo.peek() != EOF){
             // Se for a ultima coluna le o ignorando '\n' se nao le ignorando ','
             if ((numeroColunas-1) != contadorParametros){
                 getline(arquivo, linha, ',');
@@ -121,9 +120,7 @@ int main(int argc, char *argv[]){
             if (numeroColunas == contadorParametros){
                 contadorLinhas++;
                 contadorParametros = 0;
-
-            }
-            
+            }            
         }
 
 
@@ -143,9 +140,6 @@ int main(int argc, char *argv[]){
         cout << "Chave de Agregacao: "<< chaveAgregacao << " - " << posicaoChave << endl;
         cout << "Coluna da Calculo: "<< colunaCalculo << " - " << posicaoValor<< endl;
     }
-
-
-    
 
     return 0;
 }
