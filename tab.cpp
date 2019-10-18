@@ -29,7 +29,7 @@ struct structLinhas{
 };
 
 int main(int argc, char *argv[]){
-    bool DEBUG_MODE = true;
+    bool DEBUG_MODE = false;
     int XXX = 0;
     int YYY = 0;
 
@@ -96,7 +96,6 @@ int main(int argc, char *argv[]){
         if (strcmp(chave, argv[4]) == 0) posicaoValor = numIteracoes;
         numIteracoes++;
         contadorParametros++;
-        cout << chave << endl;
 
         delete[] chave;
 
@@ -135,19 +134,14 @@ int main(int argc, char *argv[]){
             // Converte String para vetor de char
             strcpy(chave, linha.c_str());
             
-            // if (linhaAtual > 0){
-                if (contadorParametros == posicaoChave){
-                    strcpy(Linhas[contadorLinhas].colunaChave, chave);
-                    // saida << Linhas[contadorLinhas].colunaChave << ',';
-                    cout << Linhas[contadorLinhas].colunaChave << ',';
-                }
+            if (contadorParametros == posicaoChave){
+                strcpy(Linhas[contadorLinhas].colunaChave, chave);
+            }
 
-                if (contadorParametros == posicaoValor){
-                    Linhas[contadorLinhas].valor = stod(chave);
-                    // saida << Linhas[contadorLinhas].valor << endl;
-                    cout << Linhas[contadorLinhas].valor << endl;
-                }
-            // }
+            if (contadorParametros == posicaoValor){
+                Linhas[contadorLinhas].valor = stod(chave);
+            }
+
             numIteracoes++;
             contadorParametros++;
 
@@ -181,9 +175,9 @@ int main(int argc, char *argv[]){
 
         saida.close();
 
-        if (DEBUG_MODE == true){
-            printf("Arquivo: %s gerado com sucesso\n", arqSaida );
-        }
+        // if (DEBUG_MODE == true){
+        //     printf("Arquivo: %s gerado com sucesso\n", arqSaida );
+        // }
 
         nArquivoSaida++;
         contadorLinhas = 0;
@@ -205,7 +199,6 @@ int main(int argc, char *argv[]){
         cout << "Saidas: "<< YYY << endl;
     }
 
-
     return 0;
 }
 
@@ -213,7 +206,6 @@ int main(int argc, char *argv[]){
 int particiona(struct structLinhas *v, int beg, int end, int pivo) {
     char *chavePivo = new char [strlen(v[pivo].colunaChave)+1];
     strcpy(chavePivo, v[pivo].colunaChave);
-    cout << pivo << endl;
 
     //colocamos o pivo temporariamente na ultima posição
     swap(v[pivo], v[end-1]);
@@ -242,3 +234,10 @@ void quickSort2(struct structLinhas *v, int beg, int end) {
 void quickSort(struct structLinhas *v, int n) {
     quickSort2(v, 0, n+1);
 }
+
+// void merge(){
+
+//     for (int i = 0; i < n; i++){
+//         leitura[i].
+//     }
+// }
