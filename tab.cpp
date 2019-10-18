@@ -6,18 +6,17 @@
 #include <string>
 
 
-// #include <sstream> 
 using namespace std;
 
 // Quicksort
-int particiona(int *v, int beg, int end, int pivo);
-void quickSort2(int *v, int beg, int end);
-void quickSort(int *v, int n);
+int particiona(struct structLinhas *v, int beg, int end, int pivo);
+void quickSort2(struct structLinhas *v, int beg, int end);
+void quickSort(struct structLinhas *v, int n);
 
 
 struct structLinhas{
     char colunaChave[50];
-    double valor = 0;
+    long double valor = 0;
 };
 
 int main(int argc, char *argv[]){
@@ -35,10 +34,9 @@ int main(int argc, char *argv[]){
 
     // Leituras da linha de comando
     int maxLinhas = atoi(argv[2]);
-    char chaveAgregacao[50];
+    char *chaveAgregacao = new char [strlen(argv[3])+1];
     strcpy (chaveAgregacao, argv[3]);
-    int tamanhoChave = strlen(argv[3]);
-    char colunaCalculo[50];
+    char *colunaCalculo = new char [strlen(argv[4])+1];
     strcpy (colunaCalculo, argv[4]);
 
 
@@ -55,10 +53,9 @@ int main(int argc, char *argv[]){
     ifstream arquivo(argv[1]);
     
     // Verifica chave e quantidade de colunas
-
-    char chave[50];
-    // char *chave = new char[linha.length()+1];
     getline(arquivo, linha, '\n');
+    int x = linha.length() +1;
+    char *chave = new char [x];
     strcpy(chave, linha.c_str());
 
     // Contagem do numero de colunas
@@ -67,69 +64,114 @@ int main(int argc, char *argv[]){
         if (chave[i] == ',') numeroColunas++;
     }
 
+    delete[] chave;
+
     // Volta para o inicio do arquivo apos ler o numero de colunas
     arquivo.seekg (0, arquivo.beg);
 
     while(numIteracoes < numeroColunas){
-        getline(arquivo, linha, ',');
+        // Se for a ultima coluna le o ignorando '\n' se nao le ignorando ','
+        if ((numeroColunas-1) != contadorParametros){
+            getline(arquivo, linha, ',');
+        }
+        else{
+            getline(arquivo, linha, '\n');
+        }
+
+        int x = linha.length() +1;
+        char *chave = new char [x];
         strcpy(chave, linha.c_str());
         // Determinar qual a coluna da chave
         if (strcmp(chave, chaveAgregacao) == 0) posicaoChave = numIteracoes;
         if (strcmp(chave, colunaCalculo) == 0) posicaoValor = numIteracoes;
         numIteracoes++;
+        contadorParametros++;
+        cout << chave << endl;
+
+        delete[] chave;
+
     }
     // Volta para o inicio do arquivo apos ler o numero de colunas
     arquivo.seekg (0, arquivo.beg);
     numIteracoes = 0;
+    contadorParametros = 0;
 
     char arqSaida[20];
 
-    structLinhas Linhas[maxLinhas+1];
-
     while (arquivo.peek() != EOF){
         
+        structLinhas *Linhas = new structLinhas[maxLinhas+1];
+
         sprintf(arqSaida, "%d.txt", nArquivoSaida);
         
         ofstream saida(arqSaida);
-
-        if (DEBUG_MODE == true){
-            printf("Arquivo: %s gerado com sucesso\n", arqSaida );
-        }
 
         while(contadorLinhas-1 < maxLinhas && arquivo.peek() != EOF){
             // Se for a ultima coluna le o ignorando '\n' se nao le ignorando ','
             if ((numeroColunas-1) != contadorParametros){
                 getline(arquivo, linha, ',');
             }
-            else{
+            else if ((numeroColunas-1) == contadorParametros){
                 getline(arquivo, linha, '\n');
             }
+
+            int x = linha.length() +1;
+            char *chave = new char [x];
             // Converte String para vetor de char
             strcpy(chave, linha.c_str());
 
             if (contadorLinhas > 0){
                 if (contadorParametros == posicaoChave){
                     strcpy(Linhas[contadorLinhas].colunaChave, chave);
-                    saida << Linhas[contadorLinhas].colunaChave << ',';
+                    // saida << Linhas[contadorLinhas].colunaChave << ',';
+                    cout << Linhas[contadorLinhas].colunaChave << ',';
                 }
+                    
                 if (contadorParametros == posicaoValor){
                     Linhas[contadorLinhas].valor = stod(chave);
-                    saida << Linhas[contadorLinhas].valor << endl;
+                    // saida << Linhas[contadorLinhas].valor << endl;
+                    cout << Linhas[contadorLinhas].valor << endl;
                 }
             }
             numIteracoes++;
             contadorParametros++;
+
 
             // Contador de Linhas
             if (numeroColunas == contadorParametros){
                 contadorLinhas++;
                 contadorParametros = 0;
             }            
+
+            delete[] chave;
+        }
+        cout << "saiu\n";
+        if (arquivo.peek() != EOF){
+            //quickSort(Linhas, maxLinhas);
+            // Gravar valores no arquivo
+            for (int i = 1; i <= maxLinhas; i++){
+                saida << Linhas[i].colunaChave << ',';
+                saida << Linhas[i].valor << endl;
+            }
+        }
+        else if(arquivo.peek() == EOF){
+            //quickSort(Linhas, contadorLinhas+1);
+            // Gravar valores no arquivo
+            for (int i = 1; i <= contadorLinhas; i++){
+                saida << Linhas[i].colunaChave << ',';
+                saida << Linhas[i].valor << endl;
+            }
         }
 
         saida.close();
+
+        if (DEBUG_MODE == true){
+            printf("Arquivo: %s gerado com sucesso\n", arqSaida );
+        }
+
         nArquivoSaida++;
         contadorLinhas = 0;
+        delete[] Linhas;
     }
 
     // Fechamento do arquivo
@@ -144,35 +186,42 @@ int main(int argc, char *argv[]){
         cout << "Coluna da Calculo: "<< colunaCalculo << " - " << posicaoValor<< endl;
     }
 
+    delete[] colunaCalculo;
+    delete[] chaveAgregacao;
+
     return 0;
 }
 
 // particiona o subvetor v[beg, ..., end - 1]
-int particiona(int *v, int beg, int end, int pivo) {
-    int valorPivo = v[pivo];
+int particiona(struct structLinhas *v, int beg, int end, int pivo) {
+    char *chavePivo = new char [strlen(v[pivo].colunaChave)+1];
+    strcpy(chavePivo, v[pivo].colunaChave);
+    cout << pivo << endl;
+
     //colocamos o pivo temporariamente na ultima posição
     swap(v[pivo], v[end-1]);
     // ao acharmos um elemento menor do que o pivo, vamos coloca-lo
     // na posicao "pos"
     int pos = beg;
     for(int i = beg; i < end-1; i++) {
-        if (v[i] < valorPivo) {
+        if ( strcmp(v[i].colunaChave, chavePivo) < 0) {
             swap(v[pos], v[i]);
             pos++;
         }
     }
     //coloque o pivo depois do ultimo elemento menor que ele
     swap(v[pos],v[end-1]);
+    delete[] chavePivo;
     return pos;
 }
 
-void quickSort2(int *v, int beg, int end) {
+void quickSort2(struct structLinhas *v, int beg, int end) {
     if(beg == end) return;
     int pos = particiona(v, beg, end, beg);
     quickSort2(v, beg, pos);
     quickSort2(v, pos + 1, end);
 }
 
-void quickSort(int *v, int n) {
-    quickSort2(v, 0, n);
+void quickSort(struct structLinhas *v, int n) {
+    quickSort2(v, 0, n+1);
 }
