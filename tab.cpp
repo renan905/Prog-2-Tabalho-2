@@ -163,15 +163,16 @@ int main(int argc, char *argv[]){
                 YYY++;
             }
         }
-        else if (arquivo.peek() != EOF){
-            quickSort(Linhas, contadorLinhas+1);
-            // Gravar valores no arquivo
-            for (int i = 1; i <= contadorLinhas; i++){
-                saida << Linhas[i].colunaChave << ',';
-                saida << Linhas[i].valor << endl;
-                YYY++;
-            }
-        }
+        
+        // else if (arquivo.peek() != EOF){
+        //     quickSort(Linhas, contadorLinhas+1);
+        //     // Gravar valores no arquivo
+        //     for (int i = 1; i <= contadorLinhas; i++){
+        //         saida << Linhas[i].colunaChave << ',';
+        //         saida << Linhas[i].valor << endl;
+        //         YYY++;
+        //     }
+        // }
 
         saida.close();
 
@@ -202,6 +203,7 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
+// ---------- QUICKSORT retirado dos slides das aulas teoricas ----------
 // particiona o subvetor v[beg, ..., end - 1]
 int particiona(struct structLinhas *v, int beg, int end, int pivo) {
     char *chavePivo = new char [strlen(v[pivo].colunaChave)+1];
