@@ -13,6 +13,15 @@ int particiona(struct structLinhas *v, int beg, int end, int pivo);
 void quickSort2(struct structLinhas *v, int beg, int end);
 void quickSort(struct structLinhas *v, int n);
 
+int contarLinhas(char **argv){
+    int numeroLinhas = 0;
+    ifstream arquivo(argv[1]);
+    while (arquivo.peek() != EOF){
+        arquivo.ignore();
+        numeroLinhas++;
+    }
+    return numeroLinhas;
+}
 
 struct structLinhas{
     char colunaChave[50];
@@ -21,6 +30,8 @@ struct structLinhas{
 
 int main(int argc, char *argv[]){
     bool DEBUG_MODE = true;
+    int XXX = 0;
+    int YYY = 0;
 
     // Checar se o numero de argumento esta correto
     if (argc < 4){
@@ -34,14 +45,15 @@ int main(int argc, char *argv[]){
 
     // Leituras da linha de comando
     int maxLinhas = atoi(argv[2]);
-    char *chaveAgregacao = new char [strlen(argv[3])+1];
-    strcpy (chaveAgregacao, argv[3]);
-    char *colunaCalculo = new char [strlen(argv[4])+1];
-    strcpy (colunaCalculo, argv[4]);
+    int totalLinha = contarLinhas(argv);
 
+    // char *argv[3] = new char [strlen(argv[3])+1];
+    // strcpy (argv[3], argv[3]);
+    // char *argv[4] = new char [strlen(argv[4])+1];
+    // strcpy (argv[4], argv[4]);
 
     int posicaoChave = 0, posicaoValor = 0; //Guarda a posicao do chave e da coluna de calculo
-    int contadorLinhas = 0, contadorParametros = 0, numIteracoes = 0; // Contadores
+    int contadorLinhas = 0, contadorParametros = 0, linhaAtual = 0, numIteracoes = 0; // Contadores
     int nArquivoSaida = 1; //Numero do arquivo de saida
 
     bool primeira = false;
@@ -54,8 +66,7 @@ int main(int argc, char *argv[]){
     
     // Verifica chave e quantidade de colunas
     getline(arquivo, linha, '\n');
-    int x = linha.length() +1;
-    char *chave = new char [x];
+    char *chave = new char [linha.length() +1];
     strcpy(chave, linha.c_str());
 
     // Contagem do numero de colunas
@@ -78,12 +89,11 @@ int main(int argc, char *argv[]){
             getline(arquivo, linha, '\n');
         }
 
-        int x = linha.length() +1;
-        char *chave = new char [x];
+        char *chave = new char [linha.length() +1];
         strcpy(chave, linha.c_str());
         // Determinar qual a coluna da chave
-        if (strcmp(chave, chaveAgregacao) == 0) posicaoChave = numIteracoes;
-        if (strcmp(chave, colunaCalculo) == 0) posicaoValor = numIteracoes;
+        if (strcmp(chave, argv[3]) == 0) posicaoChave = numIteracoes;
+        if (strcmp(chave, argv[4]) == 0) posicaoValor = numIteracoes;
         numIteracoes++;
         contadorParametros++;
         cout << chave << endl;
@@ -92,9 +102,11 @@ int main(int argc, char *argv[]){
 
     }
     // Volta para o inicio do arquivo apos ler o numero de colunas
-    arquivo.seekg (0, arquivo.beg);
+    // arquivo.seekg (0, arquivo.beg);
     numIteracoes = 0;
     contadorParametros = 0;
+    int cabecalho = 0;
+
 
     char arqSaida[20];
 
@@ -107,35 +119,37 @@ int main(int argc, char *argv[]){
         ofstream saida(arqSaida);
 
         while(contadorLinhas-1 < maxLinhas && arquivo.peek() != EOF){
+                
             // Se for a ultima coluna le o ignorando '\n' se nao le ignorando ','
             if ((numeroColunas-1) != contadorParametros){
                 getline(arquivo, linha, ',');
+                XXX++;
             }
             else if ((numeroColunas-1) == contadorParametros){
                 getline(arquivo, linha, '\n');
+                XXX++;
             }
 
-            int x = linha.length() +1;
-            char *chave = new char [x];
+            char *chave = new char [linha.length() +1];
+
             // Converte String para vetor de char
             strcpy(chave, linha.c_str());
-
-            if (contadorLinhas > 0){
+            
+            // if (linhaAtual > 0){
                 if (contadorParametros == posicaoChave){
                     strcpy(Linhas[contadorLinhas].colunaChave, chave);
                     // saida << Linhas[contadorLinhas].colunaChave << ',';
                     cout << Linhas[contadorLinhas].colunaChave << ',';
                 }
-                    
+
                 if (contadorParametros == posicaoValor){
                     Linhas[contadorLinhas].valor = stod(chave);
                     // saida << Linhas[contadorLinhas].valor << endl;
                     cout << Linhas[contadorLinhas].valor << endl;
                 }
-            }
+            // }
             numIteracoes++;
             contadorParametros++;
-
 
             // Contador de Linhas
             if (numeroColunas == contadorParametros){
@@ -145,21 +159,23 @@ int main(int argc, char *argv[]){
 
             delete[] chave;
         }
-        cout << "saiu\n";
+
         if (arquivo.peek() != EOF){
-            //quickSort(Linhas, maxLinhas);
+            quickSort(Linhas, maxLinhas);
             // Gravar valores no arquivo
             for (int i = 1; i <= maxLinhas; i++){
                 saida << Linhas[i].colunaChave << ',';
                 saida << Linhas[i].valor << endl;
+                YYY++;
             }
         }
-        else if(arquivo.peek() == EOF){
-            //quickSort(Linhas, contadorLinhas+1);
+        else if (arquivo.peek() != EOF){
+            quickSort(Linhas, contadorLinhas+1);
             // Gravar valores no arquivo
             for (int i = 1; i <= contadorLinhas; i++){
                 saida << Linhas[i].colunaChave << ',';
                 saida << Linhas[i].valor << endl;
+                YYY++;
             }
         }
 
@@ -171,6 +187,7 @@ int main(int argc, char *argv[]){
 
         nArquivoSaida++;
         contadorLinhas = 0;
+        linhaAtual++;
         delete[] Linhas;
     }
 
@@ -182,12 +199,12 @@ int main(int argc, char *argv[]){
         cout << "Numero de Colunas: "<< numeroColunas << endl;
         cout << "Numero de Linhas: "<< maxLinhas << endl;
         cout << "Total de Arquivos Criados: "<< nArquivoSaida-1 << endl;
-        cout << "Chave de Agregacao: "<< chaveAgregacao << " - " << posicaoChave << endl;
-        cout << "Coluna da Calculo: "<< colunaCalculo << " - " << posicaoValor<< endl;
+        cout << "Chave de Agregacao: "<< argv[3] << " - " << posicaoChave << endl;
+        cout << "Coluna da Calculo: "<< argv[4] << " - " << posicaoValor<< endl;
+        cout << "Leituras: "<< XXX/numeroColunas << endl;
+        cout << "Saidas: "<< YYY << endl;
     }
 
-    delete[] colunaCalculo;
-    delete[] chaveAgregacao;
 
     return 0;
 }
