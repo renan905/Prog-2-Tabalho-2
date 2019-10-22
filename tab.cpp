@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cstring>
 #include <cstdio>
+#include <ctype.h>
 
 #include <string>
 
@@ -13,25 +14,20 @@ int particiona(struct structLinhas *v, int beg, int end, int pivo);
 void quickSort2(struct structLinhas *v, int beg, int end);
 void quickSort(struct structLinhas *v, int n);
 
-int contarLinhas(char **argv){
-    int numeroLinhas = 0;
-    ifstream arquivo(argv[1]);
-    while (arquivo.peek() != EOF){
-        arquivo.ignore();
-        numeroLinhas++;
-    }
-    return numeroLinhas;
-}
+void procesamento(int nArquivoSaida);
+
+void leLinha(ifstream processador[], struct structLinhas *Linhas, int nPro, int nLinha);
+void peneira(struct structLinhas *Linhas, int m, int maxLinhas);
+void heapfy(struct structLinhas *Linhas, int maxLinhas);
 
 struct structLinhas{
     char colunaChave[50];
     long double valor = 0;
+    int nPro = 0;
 };
 
 int main(int argc, char *argv[]){
-    bool DEBUG_MODE = false;
-    int XXX = 0;
-    int YYY = 0;
+    bool DEBUG_MODE = true;
 
     // Checar se o numero de argumento esta correto
     if (argc < 4){
@@ -43,14 +39,9 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
+
     // Leituras da linha de comando
     int maxLinhas = atoi(argv[2]);
-    int totalLinha = contarLinhas(argv);
-
-    // char *argv[3] = new char [strlen(argv[3])+1];
-    // strcpy (argv[3], argv[3]);
-    // char *argv[4] = new char [strlen(argv[4])+1];
-    // strcpy (argv[4], argv[4]);
 
     int posicaoChave = 0, posicaoValor = 0; //Guarda a posicao do chave e da coluna de calculo
     int contadorLinhas = 0, contadorParametros = 0, linhaAtual = 0, numIteracoes = 0; // Contadores
@@ -117,16 +108,14 @@ int main(int argc, char *argv[]){
         
         ofstream saida(arqSaida);
 
-        while(contadorLinhas-1 < maxLinhas && arquivo.peek() != EOF){
+        while(contadorLinhas < maxLinhas && arquivo.peek() != EOF){
                 
             // Se for a ultima coluna le o ignorando '\n' se nao le ignorando ','
             if ((numeroColunas-1) != contadorParametros){
                 getline(arquivo, linha, ',');
-                XXX++;
             }
             else if ((numeroColunas-1) == contadorParametros){
                 getline(arquivo, linha, '\n');
-                XXX++;
             }
 
             char *chave = new char [linha.length() +1];
@@ -135,11 +124,11 @@ int main(int argc, char *argv[]){
             strcpy(chave, linha.c_str());
             
             if (contadorParametros == posicaoChave){
-                strcpy(Linhas[contadorLinhas].colunaChave, chave);
+                strcpy(Linhas[contadorLinhas+1].colunaChave, chave);
             }
 
             if (contadorParametros == posicaoValor){
-                Linhas[contadorLinhas].valor = stod(chave);
+                Linhas[contadorLinhas+1].valor = stod(chave);
             }
 
             numIteracoes++;
@@ -154,31 +143,14 @@ int main(int argc, char *argv[]){
             delete[] chave;
         }
 
-        if (arquivo.peek() != EOF){
-            quickSort(Linhas, maxLinhas);
-            // Gravar valores no arquivo
-            for (int i = 1; i <= maxLinhas; i++){
-                saida << Linhas[i].colunaChave << ',';
-                saida << Linhas[i].valor << endl;
-                YYY++;
-            }
+        quickSort(Linhas, contadorLinhas);
+        // Gravar valores no arquivo
+        for (int i = 1; i <= contadorLinhas; i++){
+            saida << Linhas[i].colunaChave << ',';
+            saida << Linhas[i].valor << endl;
         }
-        
-        // else if (arquivo.peek() != EOF){
-        //     quickSort(Linhas, contadorLinhas+1);
-        //     // Gravar valores no arquivo
-        //     for (int i = 1; i <= contadorLinhas; i++){
-        //         saida << Linhas[i].colunaChave << ',';
-        //         saida << Linhas[i].valor << endl;
-        //         YYY++;
-        //     }
-        // }
 
         saida.close();
-
-        // if (DEBUG_MODE == true){
-        //     printf("Arquivo: %s gerado com sucesso\n", arqSaida );
-        // }
 
         nArquivoSaida++;
         contadorLinhas = 0;
@@ -188,6 +160,7 @@ int main(int argc, char *argv[]){
 
     // Fechamento do arquivo
     arquivo.close();
+    procesamento(nArquivoSaida);
 
     if (DEBUG_MODE == true){
         cout << endl << "--- DEBUG INFO ----" << endl;
@@ -196,8 +169,6 @@ int main(int argc, char *argv[]){
         cout << "Total de Arquivos Criados: "<< nArquivoSaida-1 << endl;
         cout << "Chave de Agregacao: "<< argv[3] << " - " << posicaoChave << endl;
         cout << "Coluna da Calculo: "<< argv[4] << " - " << posicaoValor<< endl;
-        cout << "Leituras: "<< XXX/numeroColunas << endl;
-        cout << "Saidas: "<< YYY << endl;
     }
 
     return 0;
@@ -234,12 +205,161 @@ void quickSort2(struct structLinhas *v, int beg, int end) {
 }
 
 void quickSort(struct structLinhas *v, int n) {
-    quickSort2(v, 0, n+1);
+    quickSort2(v, 1, n);
 }
 
-// void merge(){
 
-//     for (int i = 0; i < n; i++){
-//         leitura[i].
+// ---------- MERGESORT retirado dos slides das aulas teoricas ----------
+
+/* Supondo que v[p...q-1] e
+v[q...r-1] estejam ordenados */
+// void merge(int *v, int p, int q, int maxLinhas) {
+//     int tam = maxLinhas-p;
+//     int *aux = new int[tam];
+//     int i = p; //cursor 1
+//     int j = q; //cursor 2
+//     int k = 0; //cursor para aux
+
+//     while(i < q && j < maxLinhas) {
+//         if (v[i] <= v[j])
+//             aux[k++] = v[i++];
+//         else
+//             aux[k++] = v[j++];
+//     }
+
+//     while(i < q)
+//         aux[k++] = v[i++];
+        
+//     while(j < maxLinhas)
+//         aux[k++] = v[j++];
+
+//     for(k = 0; k < tam; k++)
+//         v[p+k] = aux[k];
+
+//     delete []aux;
+// }
+
+// /* Ordena o vetor v entre as posicoes p e r-1 */
+// void mergeSort(int *v, int p, int maxLinhas) {
+//     // com um elemento, já está ordenado
+//     if (p < maxLinhas-1) {
+//         int meio = (p+r) / 2;
+//         // mergeSort(v, p, meio);
+//         // mergeSort(v, meio, maxLinhas);
+//         merge(v, p, meio, maxLinhas); //intercala
 //     }
 // }
+
+// void mergeSort(int *v, int maxLinhas) {
+//     mergeSort(v, 0, maxLinhas);
+// }
+
+
+void procesamento(int nArquivoSaida){
+    char arqSaida[20];
+    nArquivoSaida = nArquivoSaida-1;
+    ifstream processador[nArquivoSaida+1];
+
+    structLinhas *Linhas = new structLinhas[nArquivoSaida+1];
+
+    int nPro = 1, k = 0, nLinha = 0;
+
+    for (int i = nArquivoSaida; i > 0; i--){
+        sprintf(arqSaida, "%d.txt", i);
+        processador[i].open(arqSaida);
+        cout << "aberto: " << arqSaida << endl;
+    }
+
+    
+
+    // structLinhas **Linhas;
+    // Linhas = new structLinhas*[nArquivoSaida+1];
+
+    // for (int i = 0; i <= nArquivoSaida+1; i++){
+    //     Linhas[i] = new structLinhas[1];
+    // }
+
+
+    
+
+    for (int i = 1; i <= nArquivoSaida; i++){
+        leLinha(processador, Linhas, nPro, nLinha);
+        Linhas[nPro].nPro = nPro;
+        cout << Linhas[nLinha].nPro << endl;
+        nPro++;
+        nLinha++;
+    }
+
+
+
+    heapfy(Linhas, nArquivoSaida);
+        
+
+
+    for (int i = 1; i <= nArquivoSaida; i++){
+        sprintf(arqSaida, "%d.txt", i);
+        processador[i].close();
+        // remove(arqSaida);
+        cout << "fechado: " << arqSaida << endl;
+    }
+
+    delete[] Linhas;
+}
+
+
+
+
+void peneira(struct structLinhas *Linhas, int m, int maxLinhas){
+    int j = 2 * m;
+    int t = Linhas[m].valor;
+    // char *chave = new char [a[m].length() + 1];
+    // srtcpy(chave, a[m]);
+    // chave = a[m];
+
+    while (j <= maxLinhas) {
+        if (j < maxLinhas && Linhas[j+1].valor < Linhas[j].valor)
+            j = j + 1;
+
+        if (t < Linhas[j].valor)
+            break;
+
+        else if (t >= Linhas[j].valor) {
+            Linhas[j/2].valor = Linhas[j].valor;
+            j = 2 * j;
+        }
+    }
+
+    Linhas[j/2].valor = t;
+
+}
+
+void heapfy(struct structLinhas *Linhas, int maxLinhas) {
+    int k;
+    for(k = maxLinhas/2; k >= 1; k--) {
+        peneira(Linhas, k, maxLinhas);
+    }
+}
+
+
+void leLinha(ifstream processador[], struct structLinhas *Linhas, int nPro, int nLinha){
+    // nPro = Numero do processador
+    if (processador[nPro].peek() != EOF){
+        string linha;
+
+        getline(processador[nPro], linha, ',');
+        char *chave1 = new char [linha.length() + 1];
+        strcpy(chave1, linha.c_str());
+        strcpy(Linhas[nLinha].colunaChave, chave1);
+    
+        getline(processador[nPro], linha, '\n');
+        char *chave2 = new char [linha.length() + 1];
+        strcpy(chave2, linha.c_str());
+        Linhas[nLinha].valor = stod(chave2);
+        
+        Linhas[nLinha].nPro++;
+
+        delete[] chave1;
+        delete[] chave2;
+    }
+
+}
