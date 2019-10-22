@@ -16,9 +16,12 @@ void quickSort(struct structLinhas *v, int n);
 
 void procesamento(int nArquivoSaida);
 
-void leLinha(ifstream processador[], struct structLinhas *Linhas, int nPro, int nLinha);
+void lerLinha(ifstream processador[], struct structLinhas *Linhas, int nPro, int nLinha);
 void peneira(struct structLinhas *Linhas, int m, int maxLinhas);
 void heapfy(struct structLinhas *Linhas, int maxLinhas);
+
+
+void swapStruct(struct structLinhas *v, int x, int y);
 
 struct structLinhas{
     char colunaChave[50];
@@ -267,7 +270,7 @@ void procesamento(int nArquivoSaida){
     for (int i = nArquivoSaida; i > 0; i--){
         sprintf(arqSaida, "%d.txt", i);
         processador[i].open(arqSaida);
-        cout << "aberto: " << arqSaida << endl;
+        // cout << "aberto: " << arqSaida << endl;
     }
 
     
@@ -283,52 +286,82 @@ void procesamento(int nArquivoSaida){
     
 
     for (int i = 1; i <= nArquivoSaida; i++){
-        leLinha(processador, Linhas, nPro, nLinha);
+        lerLinha(processador, Linhas, nPro, nLinha);
         Linhas[nPro].nPro = nPro;
-        cout << Linhas[nLinha].nPro << endl;
+        // cout << Linhas[nLinha].nPro << endl;
         nPro++;
         nLinha++;
     }
 
 
+    // heapfy(Linhas, nArquivoSaida-1);
+    // cout << Linhas[nArquivoSaida].valor << endl;
+    // // cout << Linhas[0].nPro << endl;
+    // int aux = Linhas[0].nPro;
 
-    heapfy(Linhas, nArquivoSaida);
-        
+    // lerLinha(processador, Linhas, aux, nLinha);
+    // heapfy(Linhas, nArquivoSaida);
+    // cout << Linhas[0].valor << endl;
+    // cout << Linhas[0].nPro << endl;
+
+
+    // bool menor = false;
+    // long double menorValor = Linhas[0].valor;
+
+    structLinhas Menor;
+    Menor.valor = Linhas[0].valor;
+
+    for (int k = 0; k < 3; k++){
+        for (int i = 0; i < nArquivoSaida; i++){
+            if (Linhas[i].valor < Menor.valor) {
+                Menor.valor = Linhas[i].valor;
+                Menor.nPro = Linhas[i].nPro;
+            }   
+        }
+
+        cout << Menor.valor << endl;
+        int arquivoNumero = Menor.nPro;
+        lerLinha(processador, Linhas, arquivoNumero, nLinha);
+        Menor.valor = Linhas[0].valor;
+        // cout << Linhas[Menor.nPro].valor << endl;
+
+    }
 
 
     for (int i = 1; i <= nArquivoSaida; i++){
         sprintf(arqSaida, "%d.txt", i);
         processador[i].close();
         // remove(arqSaida);
-        cout << "fechado: " << arqSaida << endl;
+        // cout << "fechado: " << arqSaida << endl;
     }
 
     delete[] Linhas;
 }
 
 
-
-
 void peneira(struct structLinhas *Linhas, int m, int maxLinhas){
     int j = 2 * m;
     int t = Linhas[m].valor;
-    // char *chave = new char [a[m].length() + 1];
-    // srtcpy(chave, a[m]);
-    // chave = a[m];
+
+    cout << "Valor: "<<Linhas[m].valor;
+    cout << "  - nPro: "<< Linhas[m].nPro << endl;
 
     while (j <= maxLinhas) {
-        if (j < maxLinhas && Linhas[j+1].valor < Linhas[j].valor)
-            j = j + 1;
+        if (Linhas[0].valor > Linhas[j].valor){
+            swapStruct(Linhas, 0, j);
+        } 
 
-        if (t < Linhas[j].valor)
-            break;
+        if (j < maxLinhas && Linhas[j+1].valor < Linhas[j].valor){
+            j = j + 1;
+        }
+
+        if (t < Linhas[j].valor) break;
 
         else if (t >= Linhas[j].valor) {
-            Linhas[j/2].valor = Linhas[j].valor;
+            Linhas[j/2] = Linhas[j];
             j = 2 * j;
         }
     }
-
     Linhas[j/2].valor = t;
 
 }
@@ -337,11 +370,13 @@ void heapfy(struct structLinhas *Linhas, int maxLinhas) {
     int k;
     for(k = maxLinhas/2; k >= 1; k--) {
         peneira(Linhas, k, maxLinhas);
+        
     }
+    cout << Linhas[0].valor << endl;
 }
 
 
-void leLinha(ifstream processador[], struct structLinhas *Linhas, int nPro, int nLinha){
+void lerLinha(ifstream processador[], struct structLinhas *Linhas, int nPro, int nLinha){
     // nPro = Numero do processador
     if (processador[nPro].peek() != EOF){
         string linha;
@@ -356,10 +391,19 @@ void leLinha(ifstream processador[], struct structLinhas *Linhas, int nPro, int 
         strcpy(chave2, linha.c_str());
         Linhas[nLinha].valor = stod(chave2);
         
-        Linhas[nLinha].nPro++;
+        // Linhas[nLinha].nPro++;
 
+        cout << Linhas[nLinha].colunaChave << "  " << Linhas[nLinha].valor << "  " << Linhas[nLinha].nPro << endl;
         delete[] chave1;
         delete[] chave2;
     }
 
+}
+
+void swapStruct(struct structLinhas *v, int x, int y){
+    structLinhas temp;
+    temp = v[x];
+
+    v[x] = v[y];
+    v[y] = temp;
 }
