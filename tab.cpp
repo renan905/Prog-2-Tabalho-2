@@ -7,6 +7,7 @@
 #include <string>
 
 
+
 using namespace std;
 
 // Quicksort
@@ -16,7 +17,7 @@ void quickSort(struct structLinhas *v, int n);
 
 void procesamento(int nArquivoSaida);
 
-void lerLinha(ifstream processador[], struct structLinhas *Linhas, int nPro, int nLinha);
+void lerLinha(ifstream processador[], struct structLinhas *Linhas, int nPro, int &nLinha);
 void peneira(struct structLinhas *Linhas, int m, int maxLinhas);
 void heapfy(struct structLinhas *Linhas, int maxLinhas);
 
@@ -26,7 +27,8 @@ void swapStruct(struct structLinhas *v, int x, int y);
 struct structLinhas{
     char colunaChave[50];
     long double valor = 0;
-    int nPro = 0;
+    int nPro = 0; // Numero do arquivo de saida
+    int ultLido = 0; // Ultima linha lida
 };
 
 int main(int argc, char *argv[]){
@@ -48,10 +50,10 @@ int main(int argc, char *argv[]){
 
     int posicaoChave = 0, posicaoValor = 0; //Guarda a posicao do chave e da coluna de calculo
     int contadorLinhas = 0, contadorParametros = 0, linhaAtual = 0, numIteracoes = 0; // Contadores
-    int nArquivoSaida = 1; //Numero do arquivo de saida
+    int nArquivoSaida = 0; //Numero do arquivo de saida
 
     bool primeira = false;
-
+    
     // Variavel de leitura
     string linha;
 
@@ -189,7 +191,7 @@ int particiona(struct structLinhas *v, int beg, int end, int pivo) {
     // na posicao "pos"
     int pos = beg;
     for(int i = beg; i < end-1; i++) {
-        if ( strcmp(v[i].colunaChave, chavePivo) < 0) {
+        if (strcmp(v[i].colunaChave, chavePivo) < 0) {
             swap(v[pos], v[i]);
             pos++;
         }
@@ -212,51 +214,6 @@ void quickSort(struct structLinhas *v, int n) {
 }
 
 
-// ---------- MERGESORT retirado dos slides das aulas teoricas ----------
-
-/* Supondo que v[p...q-1] e
-v[q...r-1] estejam ordenados */
-// void merge(int *v, int p, int q, int maxLinhas) {
-//     int tam = maxLinhas-p;
-//     int *aux = new int[tam];
-//     int i = p; //cursor 1
-//     int j = q; //cursor 2
-//     int k = 0; //cursor para aux
-
-//     while(i < q && j < maxLinhas) {
-//         if (v[i] <= v[j])
-//             aux[k++] = v[i++];
-//         else
-//             aux[k++] = v[j++];
-//     }
-
-//     while(i < q)
-//         aux[k++] = v[i++];
-        
-//     while(j < maxLinhas)
-//         aux[k++] = v[j++];
-
-//     for(k = 0; k < tam; k++)
-//         v[p+k] = aux[k];
-
-//     delete []aux;
-// }
-
-// /* Ordena o vetor v entre as posicoes p e r-1 */
-// void mergeSort(int *v, int p, int maxLinhas) {
-//     // com um elemento, já está ordenado
-//     if (p < maxLinhas-1) {
-//         int meio = (p+r) / 2;
-//         // mergeSort(v, p, meio);
-//         // mergeSort(v, meio, maxLinhas);
-//         merge(v, p, meio, maxLinhas); //intercala
-//     }
-// }
-
-// void mergeSort(int *v, int maxLinhas) {
-//     mergeSort(v, 0, maxLinhas);
-// }
-
 
 void procesamento(int nArquivoSaida){
     char arqSaida[20];
@@ -265,74 +222,41 @@ void procesamento(int nArquivoSaida){
 
     structLinhas *Linhas = new structLinhas[nArquivoSaida+1];
 
-    int nPro = 1, k = 0, nLinha = 0;
+    int nPro = 0, k = 0, nLinha = 0;
 
-    for (int i = nArquivoSaida; i > 0; i--){
+    //  Abertura dos arquivos
+    for (int i = 0; i < nArquivoSaida; i++){
         sprintf(arqSaida, "%d.txt", i);
         processador[i].open(arqSaida);
-        // cout << "aberto: " << arqSaida << endl;
+        Linhas[i].nPro = i;
+        lerLinha(processador, Linhas, i, nLinha);
+        cout << "aberto: " << arqSaida << endl;
+        nLinha++; // Contador de linhas
     }
-
     
-
-    // structLinhas **Linhas;
-    // Linhas = new structLinhas*[nArquivoSaida+1];
-
-    // for (int i = 0; i <= nArquivoSaida+1; i++){
-    //     Linhas[i] = new structLinhas[1];
-    // }
-
-
-    
-
-    for (int i = 1; i <= nArquivoSaida; i++){
-        lerLinha(processador, Linhas, nPro, nLinha);
-        Linhas[nPro].nPro = nPro;
-        // cout << Linhas[nLinha].nPro << endl;
-        nPro++;
-        nLinha++;
-    }
-
-
-    // heapfy(Linhas, nArquivoSaida-1);
-    // cout << Linhas[nArquivoSaida].valor << endl;
-    // // cout << Linhas[0].nPro << endl;
-    // int aux = Linhas[0].nPro;
-
-    // lerLinha(processador, Linhas, aux, nLinha);
-    // heapfy(Linhas, nArquivoSaida);
-    // cout << Linhas[0].valor << endl;
-    // cout << Linhas[0].nPro << endl;
-
-
-    // bool menor = false;
-    // long double menorValor = Linhas[0].valor;
-
     structLinhas Menor;
     Menor.valor = Linhas[0].valor;
 
-    for (int k = 0; k < 3; k++){
+    for (int k = 0; k < 5; k++){
         for (int i = 0; i < nArquivoSaida; i++){
             if (Linhas[i].valor < Menor.valor) {
                 Menor.valor = Linhas[i].valor;
                 Menor.nPro = Linhas[i].nPro;
-            }   
+            }
         }
 
-        cout << Menor.valor << endl;
-        int arquivoNumero = Menor.nPro;
-        lerLinha(processador, Linhas, arquivoNumero, nLinha);
-        Menor.valor = Linhas[0].valor;
-        // cout << Linhas[Menor.nPro].valor << endl;
-
+        cout << "Menor: " << Menor.valor << " - nPro: "<< Menor.nPro << endl;
+        lerLinha(processador, Linhas, Menor.nPro, nLinha);
+        Menor.valor = Linhas[Menor.nPro].valor;
+        
     }
 
 
-    for (int i = 1; i <= nArquivoSaida; i++){
+    for (int i = 0; i < nArquivoSaida; i++){
         sprintf(arqSaida, "%d.txt", i);
         processador[i].close();
-        // remove(arqSaida);
-        // cout << "fechado: " << arqSaida << endl;
+        remove(arqSaida);
+        cout << "fechado: " << arqSaida << endl;
     }
 
     delete[] Linhas;
@@ -376,7 +300,7 @@ void heapfy(struct structLinhas *Linhas, int maxLinhas) {
 }
 
 
-void lerLinha(ifstream processador[], struct structLinhas *Linhas, int nPro, int nLinha){
+void lerLinha(ifstream processador[], struct structLinhas *Linhas, int nPro, int &nLinha){
     // nPro = Numero do processador
     if (processador[nPro].peek() != EOF){
         string linha;
@@ -384,16 +308,14 @@ void lerLinha(ifstream processador[], struct structLinhas *Linhas, int nPro, int
         getline(processador[nPro], linha, ',');
         char *chave1 = new char [linha.length() + 1];
         strcpy(chave1, linha.c_str());
-        strcpy(Linhas[nLinha].colunaChave, chave1);
+        strcpy(Linhas[nPro].colunaChave, chave1);
     
         getline(processador[nPro], linha, '\n');
         char *chave2 = new char [linha.length() + 1];
         strcpy(chave2, linha.c_str());
-        Linhas[nLinha].valor = stod(chave2);
+        Linhas[nPro].valor = stod(chave2);
         
-        // Linhas[nLinha].nPro++;
-
-        cout << Linhas[nLinha].colunaChave << "  " << Linhas[nLinha].valor << "  " << Linhas[nLinha].nPro << endl;
+        // cout << Linhas[nPro].colunaChave << "  " << Linhas[nPro].valor << "  " << Linhas[nPro].nPro << endl;
         delete[] chave1;
         delete[] chave2;
     }
