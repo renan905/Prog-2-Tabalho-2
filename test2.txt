@@ -5,8 +5,8 @@ A,3,3,muita
 A,4,4,muita
 A,5,5,muita
 A,6,6,muita
-A,7,8,muita
-A,8,9,muita
+A,7,7,muita
+A,8,8,muita
 A,9,9,muita
 A,10,10,muita
 A,11,11,muita
