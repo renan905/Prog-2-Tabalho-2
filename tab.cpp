@@ -16,14 +16,16 @@ int particiona(struct structLinhas *v, int beg, int end, int pivo);
 void quickSort2(struct structLinhas *v, int beg, int end);
 void quickSort(struct structLinhas *v, int n);
 
-void procesamento(int nArquivoSaida);
+void procesamento(int numArquivoSaida);
 void lerLinha(ifstream processador[], struct Media *Linhas, int nPro, int &nLinha);
+
+int menor(struct structLinhas *Linhas, bool linhasLidas[], int numArquivoSaida);
+
+void merge(int numArquivos);
 
 struct structLinhas{
     char colunaChave[50];
     long double valor = 0;
-    int nPro = 0; // Numero do arquivo de saida
-    int ultLido = 0; // Ultima linha lida
 };
 
 struct Media{
@@ -52,7 +54,7 @@ int main(int argc, char *argv[]){
 
     int posicaoChave = 0, posicaoValor = 0; //Guarda a posicao do chave e da coluna de calculo
     int contadorLinhas = 0, contadorParametros = 0, linhaAtual = 0, numIteracoes = 0; // Contadores
-    int nArquivoSaida = 0; //Numero do arquivo de saida
+    int numArquivoSaida = 0; //Numero do arquivo de saida
 
     bool primeira = false;
     
@@ -111,7 +113,7 @@ int main(int argc, char *argv[]){
         
         structLinhas *Linhas = new structLinhas[maxLinhas+1];
 
-        sprintf(arqSaida, "%d.txt", nArquivoSaida);
+        sprintf(arqSaida, "%d.txt", numArquivoSaida);
         
         ofstream saida(arqSaida);
 
@@ -159,7 +161,7 @@ int main(int argc, char *argv[]){
 
         saida.close();
 
-        nArquivoSaida++;
+        numArquivoSaida++;
         contadorLinhas = 0;
         linhaAtual++;
         delete[] Linhas;
@@ -167,13 +169,14 @@ int main(int argc, char *argv[]){
 
     // Fechamento do arquivo
     arquivo.close();
-    procesamento(nArquivoSaida);
+    
+    procesamento(numArquivoSaida);
 
     if (DEBUG_MODE == true){
         cout << endl << "--- DEBUG INFO ----" << endl;
         cout << "Numero de Colunas: "<< numeroColunas << endl;
         cout << "Numero de Linhas: "<< maxLinhas << endl;
-        cout << "Total de Arquivos Criados: "<< nArquivoSaida-1 << endl;
+        cout << "Total de Arquivos Criados: "<< numArquivoSaida << endl;
         cout << "Chave de Agregacao: "<< argv[3] << " - " << posicaoChave << endl;
         cout << "Coluna da Calculo: "<< argv[4] << " - " << posicaoValor<< endl;
     }
@@ -217,68 +220,77 @@ void quickSort(struct structLinhas *v, int n) {
 
 
 
-void procesamento(int nArquivoSaida){
-    char arqSaida[20];
-    nArquivoSaida = nArquivoSaida-1;
-    ifstream processador[nArquivoSaida+1];
+void procesamento(int numArquivoSaida){
+    char arqSaida[50];
 
-    Media *Linhas = new Media[nArquivoSaida+1];
+    ifstream processador[numArquivoSaida];
+    string srtLinha;
+
+    // char *Linhas = new char [numArquivoSaida];
+    structLinhas *Linhas = new structLinhas[numArquivoSaida];
+
+    bool linhasLidas[numArquivoSaida];
 
     int nPro = 0, k = 0, nLinha = 0;
 
     //  Abertura dos arquivos
-    for (int i = 0; i < nArquivoSaida; i++){
+    for (int i = 0; i < numArquivoSaida; i++){
+
         sprintf(arqSaida, "%d.txt", i);
         processador[i].open(arqSaida);
-        Linhas[i].nPro = i;
-        lerLinha(processador, Linhas, i, nLinha);
-        // cout << "aberto: " << arqSaida << endl;
-        nLinha++; // Contador de linhas
+        linhasLidas[i] = true; // Contador de linhas
+
+        // cout << "Aberto: " << arqSaida << endl;
+
+        // Ler linha
+        getline(processador[i], srtLinha, '\n');
+        char *chaveLinha = new char [srtLinha.length()+1];
+        strcpy(chaveLinha, srtLinha.c_str());
+        strcpy(Linhas[i].colunaChave, chaveLinha);
+
+        
+        delete[] chaveLinha;
     }
     
-    Media Menor; // Struct da linha com menor chave
-    strcpy(Menor.chave, Linhas[0].chave);
-    bool linhaLida = false;
 
+    // Declaracao do arquivo ordenado
+    ofstream saida("Ordenado.txt");
+    int arquivosAbertos = numArquivoSaida;
 
-    for (int t = 0; t < 100; k++){
-
-        Menor.totalValores = 0;
-        Menor.valor = 0;
-
-        if (processador[t].peek() != EOF){
-            strcpy(Menor.chave, Linhas[t].chave);
-            cout << Menor.chave << endl;
+    while(arquivosAbertos != 0){
+        int posMenor = menor(Linhas, linhasLidas, numArquivoSaida);
+        saida << setprecision(15) << fixed << Linhas[posMenor].colunaChave << endl;
+      
+        if (processador[posMenor].peek() == EOF){
+            processador[posMenor].close();
+            linhasLidas[posMenor] = false;
+            arquivosAbertos--;
         }
         else{
-            continue;
+            // Ler linha
+            getline(processador[posMenor], srtLinha, '\n');
+            char *chaveLinha = new char [srtLinha.length()+1];
+            strcpy(chaveLinha, srtLinha.c_str());
+            strcpy(Linhas[posMenor].colunaChave, chaveLinha);
+            // Linhas[posMenor] = chaveLinha;
+
+            delete[] chaveLinha;
         }
 
-        for (int k = 0; k < nArquivoSaida; k++){
-            for (int j = 0; j < nArquivoSaida; j++){
-                if (strcmp(Menor.chave, Linhas[j].chave) == 0){
-                    Menor.valor = Menor.valor + Linhas[j].valor;
-                    Menor.nPro = Linhas[j].nPro;
-                    Menor.totalValores++;
-
-                    // cout << setprecision(5) << fixed << j << " "<< Menor.chave<< " " << Menor.valor << " " << Linhas[j].valor << " - " <<  Menor.totalValores<<  endl;
-                    lerLinha(processador, Linhas, Menor.nPro, nLinha);
-                }
-            }
-        }
-
-        cout << setprecision(5) << fixed << Menor.chave << ", " << Menor.valor/Menor.totalValores << endl;
-
-    }
-
-    for (int i = 0; i < nArquivoSaida; i++){
-        sprintf(arqSaida, "%d.txt", i);
-        processador[i].close();
-        // remove(arqSaida);
-        // cout << "fechado: " << arqSaida << endl;
     }
 
     delete[] Linhas;
+
+    for (int i = 0; i < numArquivoSaida; i++){
+        sprintf(arqSaida, "%d.txt", i);
+        processador[i].close();
+        remove(arqSaida);
+        // cout << "fechado: " << arqSaida << endl;
+    }
+
+    // delete[] Linhas;
+
+    saida.close();
 }
 
 void lerLinha(ifstream processador[], struct Media *Linhas, int nPro, int &nLinha){
@@ -300,4 +312,20 @@ void lerLinha(ifstream processador[], struct Media *Linhas, int nPro, int &nLinh
         delete[] chave2;
     }
 
+}
+
+int menor(struct structLinhas *Linhas, bool linhasLidas[], int numArquivoSaida){
+    int posMenor = 0;
+
+    while (posMenor < numArquivoSaida){
+        if (linhasLidas[posMenor]) break;
+        else posMenor++;
+    }
+
+    for(int i = 0; i < numArquivoSaida; i++){
+        if (linhasLidas[i] && (strcmp(Linhas[i].colunaChave, Linhas[posMenor].colunaChave) < 0)){
+            posMenor = i;
+        }
+    }
+    return posMenor;
 }
