@@ -14,6 +14,8 @@ int menor(struct structLinhas *Linhas, bool linhasLidas[], int numArquivoSaida);
 void media();
 void merge(int numArquivos);
 
+void ordenacao(int argc, char **argv);
+
 // Quicksort
 int particiona(struct structLinhas *v, int beg, int end, int pivo);
 void quickSort2(struct structLinhas *v, int beg, int end);
@@ -25,7 +27,6 @@ struct structLinhas{
 };
 
 int main(int argc, char *argv[]){
-    bool DEBUG_MODE = true;
 
     // Checar se o numero de argumento esta correto
     if (argc < 4){
@@ -37,124 +38,7 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
-    // Leituras da linha de comando
-    int maxLinhas = atoi(argv[2]);
-
-    int posicaoChave = 0, posicaoValor = 0; //Guarda a posicao do chave e da coluna de calculo
-    int contadorLinhas = 0, contadorParametros = 0, numIteracoes = 0; // Contadores
-    int numArquivoSaida = 0; //Numero do arquivo de saida
-
-    bool primeira = false;
-    
-    // Variavel de leitura
-    string linha;
-
-    // Abertura do arquivo
-    ifstream arquivo(argv[1]);
-    
-    // Verifica chave e quantidade de colunas
-    getline(arquivo, linha, '\n');
-    char *chave = new char [linha.length() +1];
-    strcpy(chave, linha.c_str());
-
-    // Contagem do numero de colunas
-    int numeroColunas = 1;
-    for (int i = 0; chave[i] != '\0'; i++){
-        if (chave[i] == ',') numeroColunas++;
-    }
-
-    delete[] chave;
-
-    // Volta para o inicio do arquivo apos ler o numero de colunas
-    arquivo.seekg (0, arquivo.beg);
-    while(numIteracoes < numeroColunas){
-        // Se for a ultima coluna le o ignorando '\n' se nao le ignorando ','
-        if ((numeroColunas-1) != contadorParametros){
-            getline(arquivo, linha, ',');
-        }
-        else{
-            getline(arquivo, linha, '\n');
-        }
-
-        char *chave = new char [linha.length() +1];
-        strcpy(chave, linha.c_str());
-        // Determinar qual a coluna da chave
-        if (strcmp(chave, argv[3]) == 0) posicaoChave = numIteracoes;
-        if (strcmp(chave, argv[4]) == 0) posicaoValor = numIteracoes;
-        numIteracoes++;
-        contadorParametros++;
-        delete[] chave;
-
-    }
-
-    numIteracoes = 0;
-    contadorParametros = 0;
-    char arqSaida[20];
-
-    while (arquivo.peek() != EOF){
-        
-        structLinhas *Linhas = new structLinhas[maxLinhas+1];
-        sprintf(arqSaida, "%d.txt", numArquivoSaida);
-        ofstream saida(arqSaida);
-
-        while(contadorLinhas < maxLinhas && arquivo.peek() != EOF){
-                
-            // Se for a ultima coluna le o ignorando '\n' se nao le ignorando ','
-            if ((numeroColunas-1) != contadorParametros){
-                getline(arquivo, linha, ',');
-            }
-            else if ((numeroColunas-1) == contadorParametros){
-                getline(arquivo, linha, '\n');
-            }
-            char *chave = new char [linha.length() +1];
-
-            // Converte String para vetor de char
-            strcpy(chave, linha.c_str());
-            if (contadorParametros == posicaoChave){
-                strcpy(Linhas[contadorLinhas+1].colunaChave, chave);
-            }
-            if (contadorParametros == posicaoValor){
-                Linhas[contadorLinhas+1].valor = stod(chave);
-            }
-
-            numIteracoes++;
-            contadorParametros++;
-
-            // Contador de Linhas
-            if (numeroColunas == contadorParametros){
-                contadorLinhas++;
-                contadorParametros = 0;
-            }            
-            delete[] chave;
-        }
-
-        quickSort(Linhas, contadorLinhas);
-        // Gravar valores no arquivo
-        for (int i = 1; i <= contadorLinhas; i++){
-            saida << Linhas[i].colunaChave << ',';
-            saida << Linhas[i].valor << endl;
-        }
-
-        saida.close();
-
-        numArquivoSaida++;
-        contadorLinhas = 0;
-        delete[] Linhas;
-    }
-
-    // Fechamento do arquivo
-    arquivo.close();
-
-    procesamento(numArquivoSaida);
-
-    if (DEBUG_MODE == true){
-        cout << endl << "--- DEBUG INFO ----" << endl;
-        cout << "Numero de Colunas: "<< numeroColunas << endl;
-        cout << "Numero de Linhas: "<< maxLinhas << endl;
-        cout << "Total de Arquivos Criados: "<< numArquivoSaida << endl;
-        cout << "Chave de Agregacao: "<< argv[3] << " - " << posicaoChave << endl;
-        cout << "Coluna da Calculo: "<< argv[4] << " - " << posicaoValor<< endl;
-    }
+    ordenacao(argc, argv);
 
     return 0;
 }
@@ -309,4 +193,116 @@ void media(){
     delete[] chave;
 
     arquivoOrdenado.close();
+}
+
+void ordenacao(int argc, char **argv){
+    // Leituras da linha de comando
+    int maxLinhas = atoi(argv[2]);
+
+    int posicaoChave = 0, posicaoValor = 0; //Guarda a posicao do chave e da coluna de calculo
+    int contadorLinhas = 0, contadorParametros = 0, numIteracoes = 0; // Contadores
+    int numArquivoSaida = 0; //Numero do arquivo de saida
+
+    bool primeira = false;
+    
+    // Variavel de leitura
+    string linha;
+
+    // Abertura do arquivo
+    ifstream arquivo(argv[1]);
+    
+    // Verifica chave e quantidade de colunas
+    getline(arquivo, linha, '\n');
+    char *chave = new char [linha.length() +1];
+    strcpy(chave, linha.c_str());
+
+    // Contagem do numero de colunas
+    int numeroColunas = 1;
+    for (int i = 0; chave[i] != '\0'; i++){
+        if (chave[i] == ',') numeroColunas++;
+    }
+
+    delete[] chave;
+
+    // Volta para o inicio do arquivo apos ler o numero de colunas
+    arquivo.seekg (0, arquivo.beg);
+    while(numIteracoes < numeroColunas){
+        // Se for a ultima coluna le o ignorando '\n' se nao le ignorando ','
+        if ((numeroColunas-1) != contadorParametros){
+            getline(arquivo, linha, ',');
+        }
+        else{
+            getline(arquivo, linha, '\n');
+        }
+
+        char *chave = new char [linha.length() +1];
+        strcpy(chave, linha.c_str());
+        // Determinar qual a coluna da chave
+        if (strcmp(chave, argv[3]) == 0) posicaoChave = numIteracoes;
+        if (strcmp(chave, argv[4]) == 0) posicaoValor = numIteracoes;
+        numIteracoes++;
+        contadorParametros++;
+        delete[] chave;
+
+    }
+
+    numIteracoes = 0;
+    contadorParametros = 0;
+    char arqSaida[20];
+
+    while (arquivo.peek() != EOF){
+        
+        structLinhas *Linhas = new structLinhas[maxLinhas+1];
+        sprintf(arqSaida, "%d.txt", numArquivoSaida);
+        ofstream saida(arqSaida);
+
+        while(contadorLinhas < maxLinhas && arquivo.peek() != EOF){
+                
+            // Se for a ultima coluna le o ignorando '\n' se nao le ignorando ','
+            if ((numeroColunas-1) != contadorParametros){
+                getline(arquivo, linha, ',');
+            }
+            else if ((numeroColunas-1) == contadorParametros){
+                getline(arquivo, linha, '\n');
+            }
+            char *chave = new char [linha.length() +1];
+
+            // Converte String para vetor de char
+            strcpy(chave, linha.c_str());
+            if (contadorParametros == posicaoChave){
+                strcpy(Linhas[contadorLinhas+1].colunaChave, chave);
+            }
+            if (contadorParametros == posicaoValor){
+                Linhas[contadorLinhas+1].valor = stod(chave);
+            }
+
+            numIteracoes++;
+            contadorParametros++;
+
+            // Contador de Linhas
+            if (numeroColunas == contadorParametros){
+                contadorLinhas++;
+                contadorParametros = 0;
+            }            
+            delete[] chave;
+        }
+
+        quickSort(Linhas, contadorLinhas);
+        // Gravar valores no arquivo
+        for (int i = 1; i <= contadorLinhas; i++){
+            saida << Linhas[i].colunaChave << ',';
+            saida << Linhas[i].valor << endl;
+        }
+
+        saida.close();
+
+        numArquivoSaida++;
+        contadorLinhas = 0;
+        delete[] Linhas;
+    }
+
+    // Fechamento do arquivo
+    arquivo.close();
+
+    procesamento(numArquivoSaida);
 }
