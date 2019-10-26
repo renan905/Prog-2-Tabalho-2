@@ -9,12 +9,11 @@
 
 using namespace std;
 
-void procesamento(int numArquivoSaida);
-int menor(struct structLinhas *Linhas, bool linhasLidas[], int numArquivoSaida);
 void media();
 void merge(int numArquivos);
-
+void procesamento(int numArquivoSaida);
 void ordenacao(int argc, char **argv);
+int menor(struct structLinhas *Linhas, bool linhasLidas[], int numArquivoSaida);
 
 // Quicksort
 int particiona(struct structLinhas *v, int beg, int end, int pivo);
@@ -27,7 +26,6 @@ struct structLinhas{
 };
 
 int main(int argc, char *argv[]){
-
     // Checar se o numero de argumento esta correto
     if (argc < 4){
         cout << "Argumentos Insuficientes!\n";
@@ -159,30 +157,27 @@ void media(){
     ifstream arquivoOrdenado("Arquivo[ordenado].txt");
     string srtLinha;
 
-    long double valorMedia = 0;
-    long int totalElementos = 1;
-
     getline(arquivoOrdenado, srtLinha);
     char *chave = new char[srtLinha.length() + 1];
     strcpy(chave, srtLinha.c_str());
 
     char *chave2 = strtok(chave, ",");
     char chaveDeComparacao[srtLinha.length() + 1];
-
-    valorMedia = atof(strtok(NULL, ","));
+    long double valorMedia = atof(strtok(NULL, ","));;
+    long int totalElementos = 1;
 
     while (getline(arquivoOrdenado, srtLinha)) {
-        char * chave21 = new char[srtLinha.length() + 1];
+        char *chave21 = new char[srtLinha.length() + 1];
         strcpy(chave21, srtLinha.c_str());
         strcpy(chaveDeComparacao, strtok(chave21, ","));
 
         if (strcmp(chave2, chaveDeComparacao) != 0) {
-            cout << fixed << setprecision(15) << chave2 << ", " << valorMedia / totalElementos << endl;
+            cout << fixed << setprecision(20) << chave2 << ", " << valorMedia / totalElementos << endl;
             strcpy(chave2, chaveDeComparacao);
             valorMedia = 0;
             totalElementos = 0;
         }
-
+        
         valorMedia += atof(strtok(NULL, ","));
         totalElementos++;
         
